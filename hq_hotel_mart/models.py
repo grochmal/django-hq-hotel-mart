@@ -8,6 +8,12 @@ from pytz import timezone
 
 
 class Currency(models.Model):
+    '''
+    The currency data in the mart can be assumed to be correct since it comes
+    from the warehouse, there are no fields indicating provenance.
+
+    All fields are exactly the same as the Currency model in the warehouse.
+    '''
     code = models.CharField(
           _('code')
         , max_length=3
@@ -31,20 +37,24 @@ class Currency(models.Model):
 
 
 class Offer(models.Model):
+    '''
+    The fields are the same as in the warehouse but the indexes are quite
+    different.
+    '''
     hotel_id = models.PositiveIntegerField(
           _('hotel id')
         , help_text=_('the hotel providing the offer')
         )
-    price_usd = models.Decimal(
+    price_usd = models.DecimalField(
           _('prince in usd')
-        , max_digits=9
-        , decimal_places=3  # leave extra resolution for forex
+        , max_digits=20
+        , decimal_places=10
         , help_text=_('price converted to american dollars')
         )
-    original_price = models.Decimal(
+    original_price = models.DecimalField(
           _('original price')
-        , max_digits=9
-        , decimal_places=4  # some currencies may have 4 decimal places
+        , max_digits=20
+        , decimal_places=10
         , help_text=_('original price of the offer')
         )
     original_currency = models.ForeignKey(
@@ -57,13 +67,29 @@ class Offer(models.Model):
           _('breakfast included')
         , help_text=_('whether breakfast is included in the price')
         )
-    valid_from = models.DateTimeField(
+    valid_from_date = models.DateField(
           _('valid from date')
         , help_text=_('date from which this offer is valid')
         )
-    valid_to = models.DateTimeField(
+    valid_to_date = models.DateField(
           _('valid to date')
         , help_text=_('date when this offer becomes invalid')
+        )
+    valid_from_time = models.TimeField(
+          _('valid from time')
+        , help_text=_('time of the day this offer becomes valid')
+        )
+    valid_to_time = models.TimeField(
+        _('valid to time')
+        , help_text=_('time of day this offer becomes invalid')
+        )
+    checkin_date = models.DateField(
+          _('check-in date')
+        , help_text=_('date the guest must check-in')
+        )
+    checkout_date = models.DateField(
+          _('check-out date')
+        , help_text=_('date the guest must check-out')
         )
 
     def __str__(self):
@@ -75,17 +101,31 @@ class Offer(models.Model):
                )
 
     def get_absolute_url(self):
-        return reverse('hq_hotel_mart:valid', kwargs={ 'pk' : self.id })
+        return reverse('hq_hotel_mart:offer', kwargs={ 'pk' : self.id })
 
     class Meta:
+        # The first two indexes may be useful is we want to join two offers
+        # together.  For example if we query for a check-in 2016-11-12 and
+        # check-out 2016-11-30 we may query:
+        #
+        #     Query 1: hotel_id == 3 AND check-in  == 2016-11-12
+        #     Query 2: hotel_id == 3 AND check-out == 2016-11-12
+        #
+        # And then join both queries to find two separate offers that fit the
+        # bill:
+        #
+        #     Query 1.check-out == Query 2.check-in
+        #
+        # This would be a very useful feature to have.
         index_together = [
-              ( 'hotel_id' , 'valid_from' )
-            , ( 'hotel_id' , 'valid_to'   )
+              ( 'hotel_id' , 'checkin_date'  )
+            , ( 'hotel_id' , 'checkout_date' )
+            , ( 'hotel_id' , 'checkin_date'  , 'checkout_date' )
             ]
-        unique_together = ( 'hotel_id'   , 'breakfast_included'
-                          , 'valid_from' , 'valid_to'           )
-        verbose_name = _('valid offer')
-        verbose_name_plural = _('valid offers')
+        unique_together = ( 'hotel_id'     , 'breakfast_included'
+                          , 'checkin_date' , 'checkout_date'      )
+        verbose_name = _('offer')
+        verbose_name_plural = _('offers')
 
 
 class Hour(models.Model):
@@ -93,6 +133,8 @@ class Hour(models.Model):
     Pre-populated date and hour table, used for cross-linking with the Hotel
     Offer table.  This table is not needed in the warehouse it is needed in a
     data mart where it is used as a window cache for user queries.
+
+    This tables is only used to populate Hotel Offer, the cache table.
     '''
     day = models.DateField(
           _('day')
@@ -110,7 +152,8 @@ class Hour(models.Model):
         return reverse('hq_hotel_mart:hour', kwargs={ 'pk' : self.id })
 
     class Meta:
-        index_together = [ ( 'day' , 'hour' ) ]
+        # unique together produces an index on the columns
+        unique_together = [ ( 'day' , 'hour' ) ]
         verbose_name = _('hour')
         verbose_name_plural = _('hours')
 
@@ -128,11 +171,13 @@ class HotelOffer(models.Model):
 
     This is not the type of query that needs to be performed in a warehouse,
     this table is needed for data marts to copy from.
+
+    This table is pretty much a huge cache.
     '''
     hour = models.ForeignKey(
           Hour
         , verbose_name=_('hour')
-        , related_name='hotel_offer'
+        , related_name='hotel_offers'
         , help_text=_('hour on which this offer is valid')
         )
     # the hotel_id is here so we can make a better index
@@ -141,9 +186,22 @@ class HotelOffer(models.Model):
         , help_text=_('the hotel providing the offer')
         )
     offer_id = models.ForeignKey(
-          ValidOffer
+          Offer
         , verbose_name=_('offer')
         , related_name='offer_hours'
-        , help_text=_('')
+        , help_text=_('the offer that is valid at this point in time')
         )
+
+    def __str__(self):
+        return str(self.hotel_id) + ' on ' + str(hour)
+
+    def get_absolute_url(self):
+        return reverse('hq_hotel_mart:hotel', kwargs={ 'pk' : self.id })
+
+    class Meta:
+        # this table is a huge cache we only need one index,
+        # the query entry point
+        unique_together = [ ( 'hour' , 'hotel_id' , 'offer_id' ) ]
+        verbose_name = _('hotel offer')
+        verbose_name_plural = _('hotel offers')
 

@@ -31,13 +31,13 @@ CONSOLE_SCRIPTS = [
     ]
 
 setup(
-      name             = hq_stage.pkgname
-    , description      = hq_stage.__description__
-    , version          = hq_stage.__version__
-    , author           = hq_stage.__author__
-    , author_email     = hq_stage.__author_email__
-    , license          = hq_stage.__license__
-    , url              = hq_stage.__url__
+      name             = hq_hotel_mart.pkgname
+    , description      = hq_hotel_mart.__description__
+    , version          = hq_hotel_mart.__version__
+    , author           = hq_hotel_mart.__author__
+    , author_email     = hq_hotel_mart.__author_email__
+    , license          = hq_hotel_mart.__license__
+    , url              = hq_hotel_mart.__url__
     , long_description = read('README')
     , packages         = [ 'hq_hotel_mart' ]
     , classifiers      = CLS

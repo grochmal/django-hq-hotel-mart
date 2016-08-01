@@ -1,0 +1,11 @@
+{% extends "hq_main/hq.html" %}
+
+{% block title %}
+{{ currency.code }} - {{ currency.name }}
+{% endblock %}
+
+{% block page_body %}
+<div>Name: {{ currency.name }}</div>
+<div>ISO Code: {{ currency.code }}</div>
+{% endblock %}
+

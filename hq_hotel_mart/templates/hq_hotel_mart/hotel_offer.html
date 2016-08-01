@@ -1,0 +1,12 @@
+{% extends "hq_main/hq.html" %}
+
+{% block title %}
+{{ hotel_offer.hotel_id }} - {{ hotel_offer.offer_id }}
+{% endblock %}
+
+{% block page_body %}
+<div>Hotel: {{ hotel_offer.hotel_id }}</div>
+<div>Offer: {{ hotel_offer.offer_id}}</div>
+<div>Hour: {{ hotel_offer.hour }}</div>
+{% endblock %}
+
