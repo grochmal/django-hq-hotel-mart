@@ -5,8 +5,11 @@
 {% endblock %}
 
 {% block page_body %}
+{{ block.super }}
+
 <div>Hotel: {{ hotel_offer.hotel_id }}</div>
 <div>Offer: {{ hotel_offer.offer_id}}</div>
+<div>Days: {{ hotel_offer.days}}</div>
 <div>Hour: {{ hotel_offer.hour }}</div>
 {% endblock %}
 

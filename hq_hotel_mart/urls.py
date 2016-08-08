@@ -34,12 +34,16 @@ urlpatterns = [
          , name='hotel'
          )
     , url( r'^hotel/$'
-         , views.HotelOfferView.as_view()
+         , views.HotelOfferListView.as_view()
          , name='hotel_list'
          )
     , url( r'^api/$'
          , views.ApiView.as_view()
          , name='api'
+         )
+    , url( r''
+         , views.DocView.as_view()
+         , name='doc'
          )
 ]
 

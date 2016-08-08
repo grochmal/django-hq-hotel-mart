@@ -28,6 +28,7 @@ REQS = [
 
 CONSOLE_SCRIPTS = [
       'hqm-reload=hq_hotel_mart.command_line:reload_mart'
+    , 'hqm-pop-hours=hq_hotel_mart.command_line:populate_hours'
     ]
 
 setup(

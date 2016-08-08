@@ -1,4 +1,5 @@
 import re
+from django.conf import settings
 from django.http.response import JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -9,12 +10,12 @@ class SafeJsonResponse(JsonResponse):
         json_params = { 'separators' : (',', ':') }
         if settings.DEBUG:
             json_params = { 'indent' : 4 , 'separators' : (', ', ': ') }
-        super(JsonResponse, self).__init__( data
-                                          , encoder=encoder
-                                          , safe=safe
-                                          , json_dumps_params=json_params
-                                          , **kwargs
-                                          )
+        super(SafeJsonResponse, self).__init__( data
+                                              , encoder=encoder
+                                              , safe=safe
+                                              , json_dumps_params=json_params
+                                              , **kwargs
+                                              )
         # Someone may include a JSON object as an external javascript file, as
         # in:
         #     <script src='yourdomain.org/your-json-view/'>
@@ -32,6 +33,8 @@ class SafeJsonResponse(JsonResponse):
         if not settings.DEBUG:
             # self.content is always a bytestring
             self.content = b'//' + clear_json.sub(b'', self.content)
+        # be nice with terminal based browsers/downloaders
+        self.content += b'\n'
 
 
 class JSONResponseMixin(object):

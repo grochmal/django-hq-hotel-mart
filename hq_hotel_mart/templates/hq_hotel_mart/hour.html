@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block page_body %}
+{{ block.super }}
+
 <div>Day: {{ hour.day|date:'Y-m-d' }}</div>
 <div>Hour: {{ hour.hour|stringformat:"02i" }}:00:00</div>
 {% endblock %}

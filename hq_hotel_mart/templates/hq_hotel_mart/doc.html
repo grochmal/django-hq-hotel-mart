@@ -1,0 +1,83 @@
+{% extends "hq_main/hq.html" %}
+
+{% block title %}
+HQ Hotel Mart
+{% endblock %}
+
+{% block page_body %}
+{{ block.super }}
+
+<h1>HQ Hotel Mart</h1>
+
+<h3>Available commands</h3>
+
+<p>
+To configure the data mart use the following commands.
+</p>
+
+<pre>
+hqm-pop-hours [-hvt] -y <4 digit year>
+</pre>
+
+<p>
+Populates all hours for a given year.  The mart will only load offers that can
+be used within these hours.  This allows for easy reload of the entire mart
+from time to time, by truncating the tables and reloading hours and offers.
+</p>
+
+<pre>
+hqm-reload [-hvt]
+</pre>
+
+<p>
+Loads the offers from the warehouse and inserts into the caches by hour.  The
+caches can then be queried from the API.
+</p>
+
+<h3>API</h3>
+
+<p>
+  <code>GET</code> from </code>{% url 'hq_hotel_mart:api' %}</code>
+</p>
+
+<p>Examples</p>
+
+<p>When the API is able to find an offer:</p>
+
+<pre>
+GET {% url 'hq_hotel_mart:api' %}?queryAt=2016-06-07T09&hotelId=169&checkinDate=2016-06-09&checkoutDate=2016-06-10 HTTP/1.1
+Host: ...
+
+...
+
+HTTP/1.1 200 OK
+
+{ offerId: 12345678
+, hotelId: 169
+, checkinDate: '2016-06-09'
+, checkoutDate: '2016-06-10'
+, sellingPrice: 650.0
+, currencyCode: 'HKD'
+}
+</pre>
+
+<p>When no offer exist return a fixed price:</p>
+
+<pre>
+GET {% url 'hq_hotel_mart:api' %}?queryAt=2016-06-07T09&hotelId=169&checkinDate=2016-06-09&checkoutDate=2016-06-12 HTTP/1.1
+Host: ...
+
+...
+
+HTTP/1.1 200 OK
+
+{ hotelId: 169
+, checkinDate: '2016-06-09'
+, checkoutDate: '2016-06-12'
+, sellingPrice: 300.0
+, currencyCode: 'USD'
+}
+</pre>
+
+{% endblock %}
+

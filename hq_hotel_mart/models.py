@@ -17,6 +17,7 @@ class Currency(models.Model):
     code = models.CharField(
           _('code')
         , max_length=3
+        , unique=True
         , help_text=_('iso 4217 currency code')
         )
     name = models.CharField(
@@ -95,9 +96,9 @@ class Offer(models.Model):
     def __str__(self):
         return ( str(self.hotel_id)
                + ' @ '
-               + self.valid_from.strftime('%Y%m%d%H%M')
+               + self.valid_from_date.strftime('%Y%m%d%H%M')
                + ' - '
-               + self.valid_to.strftime('%Y%m%d%H%M')
+               + self.valid_to_date.strftime('%Y%m%d%H%M')
                )
 
     def get_absolute_url(self):
@@ -122,8 +123,8 @@ class Offer(models.Model):
             , ( 'hotel_id' , 'checkout_date' )
             , ( 'hotel_id' , 'checkin_date'  , 'checkout_date' )
             ]
-        unique_together = ( 'hotel_id'     , 'breakfast_included'
-                          , 'checkin_date' , 'checkout_date'      )
+        unique_together = [ ( 'hotel_id'     , 'breakfast_included'
+                            , 'checkin_date' , 'checkout_date'      ) ]
         verbose_name = _('offer')
         verbose_name_plural = _('offers')
 
@@ -146,7 +147,7 @@ class Hour(models.Model):
         )
 
     def __str__(self):
-        return str(self.day) + '@' + ('%02i' % self.hour)
+        return self.day.strftime('%Y-%m-%d') + 'T' + ('%02i' % self.hour)
 
     def get_absolute_url(self):
         return reverse('hq_hotel_mart:hour', kwargs={ 'pk' : self.id })
@@ -180,10 +181,16 @@ class HotelOffer(models.Model):
         , related_name='hotel_offers'
         , help_text=_('hour on which this offer is valid')
         )
-    # the hotel_id is here so we can make a better index
+    # the hotel_id and days are here just for indexing
     hotel_id = models.PositiveIntegerField(
           _('hotel id')
         , help_text=_('the hotel providing the offer')
+        )
+    # days are needed to make fuzzy matching of offers,
+    # when no perfect match is possible
+    days = models.PositiveSmallIntegerField(
+          _('days')
+        , help_text=_('number of days in the offer')
         )
     offer_id = models.ForeignKey(
           Offer
@@ -193,15 +200,18 @@ class HotelOffer(models.Model):
         )
 
     def __str__(self):
-        return str(self.hotel_id) + ' on ' + str(hour)
+        return str(self.hotel_id) + ' on ' + str(self.hour)
 
     def get_absolute_url(self):
         return reverse('hq_hotel_mart:hotel', kwargs={ 'pk' : self.id })
 
     class Meta:
-        # this table is a huge cache we only need one index,
-        # the query entry point
+        # this table is a huge cache for queries, index it properly
         unique_together = [ ( 'hour' , 'hotel_id' , 'offer_id' ) ]
+        index_together = [
+              ( 'hour' , 'hotel_id' )
+            , ( 'hour' , 'hotel_id' , 'days' )
+            ]
         verbose_name = _('hotel offer')
         verbose_name_plural = _('hotel offers')
 
