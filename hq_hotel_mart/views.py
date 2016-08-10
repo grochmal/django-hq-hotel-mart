@@ -125,7 +125,7 @@ class ApiView(JSONResponseMixin, generic.View):
     def get_context_data(self, *args, **kwargs):
         '''
         Queries the database for records.  It performs as little number of
-        queries as it can but sometimes we do as many as three.
+        queries as it can, but sometimes we do as many as three.
 
         First we do a trivial sanity query, in SQL terms:
 
@@ -134,7 +134,7 @@ class ApiView(JSONResponseMixin, generic.View):
             WHERE day  = self.query_at.date()
             AND   hour = self.query_at.time().hour
 
-        If we have data for that hour we try an exact match (from not on we
+        If we have data for that hour we try an exact match (from now on we
         assume that all tables are prepended with hq_hotel_mart_), in SQL
         terms:
 
@@ -162,13 +162,13 @@ class ApiView(JSONResponseMixin, generic.View):
                , offer
                , hour
             -- We already have hour.id from the previous query
-            WHERE hotel_offer.hour        = hour.id
+            WHERE hotel_offer.hour        = <hour.id>
             AND   hotel_offer.offer_id    = offer.id
             AND   offer.original_currency = currency.id
             -- And here we match
-            AND   offer.checkin_date  = self.checkin
-            AND   offer.checkout_date = self.checkout
-            AND   offer.hotel_id      = self.hotel_id
+            AND   offer.checkin_date  = <self.checkin>
+            AND   offer.checkout_date = <self.checkout>
+            AND   offer.hotel_id      = <self.hotel_id>
             -- Finally the order by gets us the cheapest offer
             ORDER BY offer.price_usd ASC
             LIMIT 1
@@ -182,18 +182,18 @@ class ApiView(JSONResponseMixin, generic.View):
                , offer
                , hour
             -- We already have hour.id from the previous query
-            WHERE hotel_offer.hour        = hour.id
+            WHERE hotel_offer.hour        = <hour.id>
             AND   hotel_offer.offer_id    = offer.id
             AND   offer.original_currency = currency.id
             -- And here we match (this is different from the previous query)
-            AND   hotel_hour.days     = self.days
-            AND   offer.hotel_id      = self.hotel_id
+            AND   hotel_hour.days     = <self.days>
+            AND   offer.hotel_id      = <self.hotel_id>
             -- Finally the order by gets us the cheapest offer
             ORDER BY offer.price_usd ASC
             LIMIT 1
 
         Otherwise we just mock an answer.  In reality we should have some
-        standard fares.
+        standard fares for each hotel.
         '''
         # generic.View has no get_context_data, do not call super
         try:
@@ -238,7 +238,7 @@ class ApiView(JSONResponseMixin, generic.View):
             return context
         # We cannot find anything!  In the real world we should have data from
         # the hotels to check standard fares.  But we do not have such data.
-        # Instead mock a standard price per day:
+        # Instead, mock a standard price per day:
         cin = self.checkin.strftime('%Y-%m-%d')
         cout = self.checkout.strftime('%Y-%m-%d')
         context = {

@@ -7,7 +7,7 @@ from pytz import timezone
 from django.db import IntegrityError
 
 
-# Trivial caches, used when we load several offers
+# Trivial caches, used when we load several offers.
 HOURS = {}
 CURRENCIES = {}
 
@@ -87,7 +87,7 @@ def load_currency(mmod, wmod, settings):
 
 def get_hour(dt, mmod):
     '''
-    Small cache manager, seriously, we should be using redis.
+    Small cache manager, seriously, we should be using redis for caches.
     '''
     global HOURS
     if dt in HOURS:
@@ -102,7 +102,7 @@ def get_hour(dt, mmod):
 
 def get_currency(wcur, mmod):
     '''
-    Cache for warehouse currency to mart currency conversion
+    Cache for warehouse currency to mart currency conversion.
     '''
     global CURRENCIES
     if wcur.code in CURRENCIES:
@@ -123,7 +123,7 @@ def load_hotel_offer(offer, days, date_fr, date_to, mmod, wmod, settings):
     dl = datetime.timedelta(hours=1)
     curr = date_fr
     # The end timestamp is already shifted on hour forward,
-    # therefore we will alway use a inclusive between.
+    # therefore we will alway use an inclusive between.
     while curr < date_to:
         hour = get_hour(curr, mmod)
         if not hour:

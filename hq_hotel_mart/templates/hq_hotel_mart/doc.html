@@ -17,6 +17,11 @@ To configure the data mart use the following commands.
 
 <pre>
 hqm-pop-hours [-hvt] -y <4 digit year>
+
+  -h  Print usage.
+  -v  Be verbose, print successes as well as errors.
+  -t  Truncate the hour table before inserting.
+  -y  A four digit year (e.g. 2016) to load the hour table with.
 </pre>
 
 <p>
@@ -27,6 +32,11 @@ from time to time, by truncating the tables and reloading hours and offers.
 
 <pre>
 hqm-reload [-hvt]
+
+  -h  Print usage.
+  -v  Be verbose, print successes as well as errors.
+  -t  Truncate the currency, offer and hoteloffer tables before beginning
+      the insert, this is useful to reload the mart from scratch.
 </pre>
 
 <p>
@@ -37,7 +47,7 @@ caches can then be queried from the API.
 <h3>API</h3>
 
 <p>
-  <code>GET</code> from </code>{% url 'hq_hotel_mart:api' %}</code>
+  <code>GET</code> from <code>{% url 'hq_hotel_mart:api' %}</code>
 </p>
 
 <p>Examples</p>

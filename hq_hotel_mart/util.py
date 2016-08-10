@@ -20,7 +20,7 @@ class SafeJsonResponse(JsonResponse):
         # in:
         #     <script src='yourdomain.org/your-json-view/'>
         #
-        # If the user visiting that website is logged in to your website and
+        # If the user visiting that website is logged into your website and
         # that JSON view has authenticated information, it will be fetched and
         # then available to the scripts on the rogue website.  In essence, yet
         # another way to perform XXS.
@@ -30,6 +30,8 @@ class SafeJsonResponse(JsonResponse):
         # you are using AJAX you will have no trouble to strip the first two
         # characters of the response, something that cannot be done with the
         # <script src= > rogue method.
+        #
+        # Reference: The Tangled Web -- Michal Zalewski
         if not settings.DEBUG:
             # self.content is always a bytestring
             self.content = b'//' + clear_json.sub(b'', self.content)

@@ -132,10 +132,8 @@ class Offer(models.Model):
 class Hour(models.Model):
     '''
     Pre-populated date and hour table, used for cross-linking with the Hotel
-    Offer table.  This table is not needed in the warehouse it is needed in a
+    Offer table.  This table is not needed in the warehouse, it is needed in a
     data mart where it is used as a window cache for user queries.
-
-    This tables is only used to populate Hotel Offer, the cache table.
     '''
     day = models.DateField(
           _('day')
@@ -161,17 +159,12 @@ class Hour(models.Model):
 
 class HotelOffer(models.Model):
     '''
-    This is heavily modified from the assignment, since the uniqueness
-    condition in there (check-in, check-out, source, breakfast) has long been
-    lost (check-in and check-out only exist in the staging area).
+    This is heavily modified from the assignment.
 
     Instead of making a single flag for the existence of an offer, we link the
     offers.  And, instead of populating this table for all hours we put the
     date-hour pair in their own table (Hour).  This way we can walk the Hour
     table and join against all available offers for the period.
-
-    This is not the type of query that needs to be performed in a warehouse,
-    this table is needed for data marts to copy from.
 
     This table is pretty much a huge cache.
     '''
